@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: product_performance
+    description: "Resumen de ingresos y órdenes agrupados por producto."
+
+    columns:
+      - name: product
+        description: "Nombre del producto."
+
+      - name: total_orders
+        description: "Número de órdenes únicas que contienen el producto."
+
+      - name: product_revenue
+        description: "Ingresos totales generados por el producto."

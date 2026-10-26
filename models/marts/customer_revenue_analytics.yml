@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: customer_revenue_analytics
+    description: "Métricas de ingresos y órdenes agrupadas por cliente."
+
+    columns:
+      - name: customer
+        description: "Nombre del cliente."
+
+      - name: total_orders
+        description: "Número de órdenes únicas del cliente."
+
+      - name: total_sales
+        description: "Importe total de las ventas del cliente."
+
+      - name: avg_order_value
+        description: "Valor promedio de las órdenes del cliente."

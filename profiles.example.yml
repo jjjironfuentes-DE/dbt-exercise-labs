@@ -1,0 +1,8 @@
+sales_demo:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: './sales_demo.duckdb'
+      schema: main
+      threads: 4
