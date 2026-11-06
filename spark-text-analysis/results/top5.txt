@@ -1,0 +1,10 @@
+Napoleon Hill - Word Frequency Analysis
+=======================================
+
+Top 5 most frequent words:
+
+1. hill        46
+2. school       9
+3. washington   7
+4. following    6
+5. virginia     6

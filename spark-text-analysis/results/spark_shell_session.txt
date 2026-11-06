@@ -1,0 +1,170 @@
+scala> val article = spark.read
+     |   .option("header", "true")
+     |   .option("inferSchema", "true")
+     |   .csv("data/Napoleon_Hill(1).csv")
+val article: org.apache.spark.sql.DataFrame = [id: int, text: string]
+
+scala> article.printSchema()
+root
+ |-- id: integer (nullable = true)
+ |-- text: string (nullable = true)
+
+
+scala> article.show(5, false)
++---+------------------------------------------------------------------------+
+|id |text                                                                    |
++---+------------------------------------------------------------------------+
+|1  |Oliver Napoleon Hill (October 26, 1883 – November 8, 1970) was an       |
+|2  |American self-help author and con man^([a]) who is best known for his   |
+|3  |book Think and Grow Rich (1937), which is among the best-selling        |
+|4  |self-help books of all time.^([4][5]) Hill's works insisted that fervid |
+|5  |expectations are essential to improving one's life.^([6][7]) Most of his|
++---+------------------------------------------------------------------------+
+only showing top 5 rows
+
+scala> val textRDD = article.select("text").rdd.map(row => row.getString(0
+))
+val textRDD: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[19] at map at <console>:1
+
+scala> textRDD.take(5).foreach(println)
+Oliver Napoleon Hill (October 26, 1883 – November 8, 1970) was an
+American self-help author and con man^([a]) who is best known for his
+book Think and Grow Rich (1937), which is among the best-selling
+self-help books of all time.^([4][5]) Hill's works insisted that fervid
+expectations are essential to improving one's life.^([6][7]) Most of his
+
+scala> val cleanRDD = lowerRDD.map(text => text.replaceAll("[^a-z\\s]", " 
+"))
+                      ^
+       error: not found: value lowerRDD
+
+scala> val lowerRDD = textRDD.map(text => text.toLowerCase)
+val lowerRDD: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[20] at map at <console>:1
+
+scala> lowerRDD.take(3).foreach(println)
+oliver napoleon hill (october 26, 1883 – november 8, 1970) was an
+american self-help author and con man^([a]) who is best known for his
+book think and grow rich (1937), which is among the best-selling
+
+scala> val cleanRDD = lowerRDD.map(text => text.replaceAll("[^a-z\\s]", " 
+"))
+val cleanRDD: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[21] at map at <console>:1
+
+scala> cleanRDD.take(5).foreach(println)
+oliver napoleon hill  october            november          was an
+american self help author and con man   a   who is best known for his
+book think and grow rich         which is among the best selling
+self help books of all time           hill s works insisted that fervid
+expectations are essential to improving one s life           most of his
+
+scala> val wordsRDD = cleanRDD
+     |   .flatMap(text => text.trim.split("\\s+"))
+     |   .filter(word => word.nonEmpty)
+val wordsRDD: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[23] at filter at <console>:3
+
+scala> wordsRDD.take(30).foreach(println)
+oliver
+napoleon
+hill
+october
+november
+was
+an
+american
+self
+help
+author
+and
+con
+man
+a
+who
+is
+best
+known
+for
+his
+book
+think
+and
+grow
+rich
+which
+is
+among
+the
+
+
+
+scala> val stopWords = sc.textFile("data/nltk_stopwords/stopwords/engl
+ish").collect().toSet
+val stopWords: scala.collection.immutable.Set[String] = HashSet(both, mightn, it's, ourselves, for, needn, down, s, further, she'll, any, this, haven't, in, myself, have, your, off, once, i'll, his, why, too, are, is, am, than, isn't, didn't, himself, but, you're, below, aren, what, i'd, y, if, they'll, up, we're, haven, they'd, t, needn't, do, all, him, you'll, own, so, our, had, re, nor, before, just, it, a, she's, as, hadn't, because, wasn, has, she, m, yours, or, above, herself, yourself, didn, she'd, such, each, should've, they, doesn, couldn, ma, don't, i, until, he's, it'd, that, out, to, we've, now, did, hers, you, most, here, these, hasn't, was, there, shan't, doing, at, through, been, over, i've, can, on, being, same, ain, how, whom, my, after, that'l...
+
+scala> stopWords.size
+val res14: Int = 198
+
+scala> val filteredRDD = wordsRDD.filter(word => !stopWords.contains(w
+ord))
+val filteredRDD: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[26] at filter at <console>:1
+
+scala> filteredRDD.take(30).foreach(println)
+oliver
+napoleon
+hill
+october
+november
+american
+self
+help
+author
+con
+man
+best
+known
+book
+think
+grow
+rich
+among
+best
+selling
+self
+help
+books
+time
+hill
+works
+insisted
+fervid
+expectations
+essential
+
+scala> val wordPairs = filteredRDD.map(word => (word, 1))
+val wordPairs: org.apache.spark.rdd.RDD[(String, Int)] = MapPartitionsRDD[27] at map at <console>:1
+
+scala> val wordCounts = wordPairs.reduceByKey((a, b) => a + b)
+val wordCounts: org.apache.spark.rdd.RDD[(String, Int)] = ShuffledRDD[28] at reduceByKey at <console>:1
+
+scala> wordCounts.take(10).foreach(println)
+(wealthy,1)
+(intimately,1)
+(fraud,5)
+(failed,1)
+(shot,1)
+(others,1)
+(madison,1)
+(outside,1)
+(previous,1)
+(martha,1)
+
+scala> val top5 = wordCounts.sortBy {
+     |   case (word, count) => (-count, word)
+     | }.take(5)
+val top5: Array[(String, Int)] = Array((hill,46), (school,9), (washington,7), (following,6), (virginia,6))
+
+scala> top5.foreach(println)
+(hill,46)
+(school,9)
+(washington,7)
+(following,6)
+(virginia,6)
