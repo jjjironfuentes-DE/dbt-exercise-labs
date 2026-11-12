@@ -1,0 +1,89 @@
+-- Create Spotify database
+CREATE DATABASE IF NOT EXISTS SPOTIFY_DB;
+
+-- Create Music schema
+CREATE SCHEMA IF NOT EXISTS SPOTIFY_DB.MUSIC;
+
+-- Select Spotify database
+USE DATABASE SPOTIFY_DB;
+
+-- Select Music schema
+USE SCHEMA MUSIC;
+
+-- Check total songs loaded
+SELECT COUNT(*) AS TOTAL_SONGS
+FROM SPOTIFY_DB.MUSIC.SONGS;
+
+-- Q1: Find the longest song
+SELECT
+    SONG_TITLE,
+    ARTIST,
+    DURATION_MS
+FROM SPOTIFY_DB.MUSIC.SONGS
+ORDER BY DURATION_MS DESC
+LIMIT 1;
+
+-- Q2: Count Drake's songs
+SELECT COUNT(*) AS DRAKE_SONGS
+FROM SPOTIFY_DB.MUSIC.SONGS
+WHERE ARTIST ILIKE '%Drake%';
+
+-- Q3: List songs with Love in the title
+SELECT
+    SONG_TITLE,
+    ARTIST
+FROM SPOTIFY_DB.MUSIC.SONGS
+WHERE SONG_TITLE ILIKE '%Love%';
+
+-- Q4: Find songs with numbers in the title
+SELECT
+    SONG_TITLE,
+    ARTIST
+FROM SPOTIFY_DB.MUSIC.SONGS
+WHERE REGEXP_LIKE(SONG_TITLE, '.*[0-9].*');
+
+-- Q5: Bachelorette weekend playlist
+SELECT
+    SONG_TITLE,
+    ARTIST,
+    DANCEABILITY,
+    ENERGY
+FROM SPOTIFY_DB.MUSIC.SONGS
+ORDER BY (DANCEABILITY + ENERGY) DESC
+LIMIT 10;
+
+-- Q6: Top 3 songs for a dance battle
+SELECT
+    SONG_TITLE,
+    ARTIST,
+    DANCEABILITY,
+    ENERGY
+FROM SPOTIFY_DB.MUSIC.SONGS
+ORDER BY DANCEABILITY DESC
+LIMIT 3;
+
+-- Q7: Artist with the most songs
+SELECT
+    ARTIST,
+    COUNT(*) AS TOTAL_SONGS
+FROM SPOTIFY_DB.MUSIC.SONGS
+GROUP BY ARTIST
+ORDER BY TOTAL_SONGS DESC
+LIMIT 1;
+
+-- Q8: Break-up song list
+SELECT
+    SONG_TITLE,
+    ARTIST
+FROM SPOTIFY_DB.MUSIC.SONGS
+WHERE SONG_TITLE ILIKE ANY (
+    '%love%',
+    '%heart%',
+    '%cry%',
+    '%sorry%',
+    '%goodbye%',
+    '%alone%',
+    '%broken%',
+    '%miss%'
+)
+ORDER BY SONG_TITLE;
